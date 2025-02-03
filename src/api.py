@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
-from typing import List
+
+from models import Receipt
+
 import uuid
 import sqlite3
 import json
@@ -14,25 +15,10 @@ conn = sqlite3.connect("data.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS data (
-               id TEXT PRIMARY KEY, json_data TEXT
-               )
+        id TEXT PRIMARY KEY, json_data TEXT
+    )
     """)
 conn.commit()
-
-class Item(BaseModel):
-    shortDescription: str
-    price: str
-
-class Receipt(BaseModel):
-    retailer: str
-    purchaseDate: str
-    purchaseTime: str
-    items: List[Item]
-    total: str
-
-# @app.get("/")
-# def read_root() -> dict[str, str]:
-#     return {"Hello": "World"}
 
 @app.post("/receipts/process")
 def process_receipt(receipt: Receipt) -> dict[str, str]:
@@ -115,7 +101,9 @@ def calculate_points(receipt: str) -> int:
     return points
 
 
-# http://127.0.0.1:8000/docs
 # documentation 
+# http://127.0.0.1:8000/docs
 
 
+# running with
+# uvicorn api:app --reload
