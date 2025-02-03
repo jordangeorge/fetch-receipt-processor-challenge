@@ -100,10 +100,3 @@ def calculate_points(receipt: str) -> int:
     
     return points
 
-
-# documentation 
-# http://127.0.0.1:8000/docs
-
-
-# running with
-# uvicorn api:app --reload
