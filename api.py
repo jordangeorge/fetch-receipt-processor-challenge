@@ -5,6 +5,8 @@ from typing import List
 import uuid
 import sqlite3
 import json
+import math
+import re
 
 app = FastAPI()
 
@@ -57,13 +59,23 @@ def process_receipt(receipt: Receipt) -> dict[str, str]:
 
 @app.get("/receipts/{unique_id}/points")
 def calculate_points(unique_id: str) -> dict:
-    cursor.execute("SELECT json_data FROM data WHERE id=?", (unique_id,))
+    cursor.execute(
+        """
+        SELECT json_data
+        FROM data
+        WHERE id = ?
+        """, 
+        (unique_id,)
+    )
+
     row = cursor.fetchone()
+
     if row:
         receipt = json.loads(row[0])
         pydantic_receipt = Receipt.model_validate(receipt)
         points = calculate_points(pydantic_receipt)
         return {"points": points}
+    
     return {"error": "Data not found"}
 
 
@@ -71,7 +83,8 @@ def calculate_points(receipt: str) -> int:
     points = 0
     
     # One point for every alphanumeric character in the retailer name.
-    points += len(receipt.retailer)
+    pattern = r'[a-zA-Z0-9]'
+    points += len(re.findall(pattern, receipt.retailer))
 
     # 50 points if the total is a round dollar amount with no cents.
     points += 50 if receipt.total.endswith(".00") else 0
@@ -79,19 +92,26 @@ def calculate_points(receipt: str) -> int:
     # 25 points if the total is a multiple of 0.25.
     if float(receipt.total) % 0.25 == 0:
         points += 25
-
+    
     # 5 points for every two items on the receipt.
     points += len(receipt.items) // 2 * 5
 
     # If the trimmed length of the item description is a multiple of 3, multiply the price by 0.2 and round up to the nearest integer. The result is the number of points earned.
-
-
+    for item in receipt.items:
+        if len(item.shortDescription.strip()) % 3 == 0:
+            points += math.ceil(float(item.price) * 0.2)
+    
     # 6 points if the day in the purchase date is odd.
-
-
+    if int(receipt.purchaseDate.split("-")[2]) % 2 == 1: points += 6
+    
     # 10 points if the time of purchase is after 2:00pm and before 4:00pm.
-
-
+    hour = int(receipt.purchaseTime.split(":")[0])
+    minute = int(receipt.purchaseTime.split(":")[1])
+    if hour == 14 and minute != 0:
+        if 14 <= hour < 16:
+            if  0 <= minute <= 59:
+                points += 10
+    
     return points
 
 
