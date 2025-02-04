@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 
 from models import Receipt
@@ -8,6 +8,7 @@ import sqlite3
 import json
 import math
 import re
+from datetime import datetime
 
 app = FastAPI()
 
@@ -20,7 +21,18 @@ cursor.execute("""
     """)
 conn.commit()
 
-@app.post("/receipts/process")
+@app.post("/receipts/process", status_code=201, responses={
+    201: {
+        "description": "Successful Response",
+         "content": {
+            "application/json": {
+                "example": {
+                    "id": "874ab0dc-d6d7-459a-be24-d324be2605a9"
+                }
+            }
+        }
+    }
+})
 def process_receipt(receipt: Receipt) -> dict[str, str]:
     # create unique id
     unique_id = str(uuid.uuid4())
@@ -42,9 +54,31 @@ def process_receipt(receipt: Receipt) -> dict[str, str]:
 
     return {"id": unique_id}
 
-
-@app.get("/receipts/{unique_id}/points")
-def calculate_points(unique_id: str) -> dict:
+@app.get("/receipts/{unique_id}/points", status_code=200, responses={
+    200: {
+        "description": "Successful Response",
+         "content": {
+            "application/json": {
+                "example": {
+                    "points": 109
+                }
+            }
+        }
+    },
+    404: {
+        "description": "Successful Response",
+         "content": {
+            "application/json": {
+                "example": {
+                    "status_code": 404,
+                    "detail": "Data not found",
+                    "headers": None
+                }
+            }
+        }
+    }
+})
+def get_points(unique_id: str):
     cursor.execute(
         """
         SELECT json_data
@@ -62,10 +96,9 @@ def calculate_points(unique_id: str) -> dict:
         points = calculate_points(pydantic_receipt)
         return {"points": points}
     
-    return {"error": "Data not found"}
+    return HTTPException(status_code=404, detail="Data not found")
 
-
-def calculate_points(receipt: str) -> int:
+def calculate_points(receipt: Receipt) -> int:
     points = 0
     
     # One point for every alphanumeric character in the retailer name.
@@ -91,12 +124,14 @@ def calculate_points(receipt: str) -> int:
     if int(receipt.purchaseDate.split("-")[2]) % 2 == 1: points += 6
     
     # 10 points if the time of purchase is after 2:00pm and before 4:00pm.
-    hour = int(receipt.purchaseTime.split(":")[0])
-    minute = int(receipt.purchaseTime.split(":")[1])
-    if hour == 14 and minute != 0:
-        if 14 <= hour < 16:
-            if  0 <= minute <= 59:
-                points += 10
-    
+    start = str_to_datetime("14:00")
+    end = str_to_datetime("16:00")
+    purchase_time = str_to_datetime(receipt.purchaseTime)
+    if start < purchase_time < end:
+        points += 10
+
     return points
 
+def str_to_datetime(date_str: str) -> datetime:
+    format = "%H:%M"
+    return datetime.strptime(date_str, format)
