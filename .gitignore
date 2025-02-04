@@ -1,6 +1,6 @@
 __pycache__
 *DS_Store
-*data.db
+*.db
 notes.txt
 venv
 curl commands.txt

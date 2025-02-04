@@ -1,25 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 
+from db import SQLiteDB
 from models import Receipt
 
-import uuid
-import sqlite3
 import json
+import uuid
 import math
 import re
 from datetime import datetime
 
 app = FastAPI()
-
-conn = sqlite3.connect("data.db", check_same_thread=False)
-cursor = conn.cursor()
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS data (
-        id TEXT PRIMARY KEY, json_data TEXT
-    )
-    """)
-conn.commit()
 
 @app.post("/receipts/process", status_code=201, responses={
     201: {
@@ -38,19 +29,10 @@ def process_receipt(receipt: Receipt) -> dict[str, str]:
     unique_id = str(uuid.uuid4())
     
     # convert in order to save in local sqlite db
-    json_compatible_item_data = jsonable_encoder(receipt)
+    json_data = jsonable_encoder(receipt)
     
     # save id and receipt data to db
-    cursor.execute("""
-        INSERT INTO data
-            (id, json_data)
-        VALUES
-            (?, ?)
-        """, (
-        unique_id,
-        json.dumps(json_compatible_item_data)
-    ))
-    conn.commit()
+    SQLiteDB().add_receipt(unique_id, json_data)
 
     return {"id": unique_id}
 
@@ -79,16 +61,7 @@ def process_receipt(receipt: Receipt) -> dict[str, str]:
     }
 })
 def get_points(unique_id: str):
-    cursor.execute(
-        """
-        SELECT json_data
-        FROM data
-        WHERE id = ?
-        """, 
-        (unique_id,)
-    )
-
-    row = cursor.fetchone()
+    row = SQLiteDB().get_receipt(unique_id)
 
     if row:
         receipt = json.loads(row[0])
