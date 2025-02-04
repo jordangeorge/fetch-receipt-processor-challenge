@@ -54,7 +54,8 @@ curl \
 'http://127.0.0.1:8000/receipts/7520a7c1-f483-4246-9735-40f8d343f1c6/points'
 ```
 
-To stop and remove the container:
+To stop the container:
 
 - Find the container ID with `docker ps`
 - `docker stop <container_id>`
+- Or more simply: `docker stop $(docker ps -n 1 -a -q)`
