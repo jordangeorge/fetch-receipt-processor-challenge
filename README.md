@@ -4,7 +4,7 @@ This is an API created for the Fetch Receipt Processor Challenge.
 
 ### Demo
 
-[View a demo on asciinema](https://asciinema.org/a/pOjaa82XuVnlAxhwYFdo6pjxF). All text in the demo can be copied.
+[View a demo on asciinema](https://asciinema.org/a/44DK4Y9YyVgQ0y7cUg1zZQXJ4). All text in the demo can be copied.
 
 ### Set up and usage information
 
