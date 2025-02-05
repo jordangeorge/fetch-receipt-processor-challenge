@@ -2,11 +2,9 @@
 
 This is an API created for the Fetch Receipt Processor Challenge.
 
-<!-- <script async id="asciicast-pOjaa82XuVnlAxhwYFdo6pjxF" src="https://asciinema.org/a/pOjaa82XuVnlAxhwYFdo6pjxF.js"></script> -->
+### Demo
 
-[![asciicast](https://asciinema.org/a/pOjaa82XuVnlAxhwYFdo6pjxF.svg)](https://asciinema.org/a/pOjaa82XuVnlAxhwYFdo6pjxF)
-
-<a href="https://asciinema.org/a/pOjaa82XuVnlAxhwYFdo6pjxF" target="_blank"><img src="https://asciinema.org/a/pOjaa82XuVnlAxhwYFdo6pjxF.svg" /></a>
+[View a demo on asciinema](https://asciinema.org/a/pOjaa82XuVnlAxhwYFdo6pjxF). All text in the demo can be copied.
 
 ### Set up and usage information
 
