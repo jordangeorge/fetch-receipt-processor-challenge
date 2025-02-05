@@ -34,6 +34,8 @@ def process_receipt(receipt: Receipt) -> dict[str, str]:
     # save id and receipt data to db
     SQLiteDB().add_receipt(unique_id, json_data)
 
+    print(f"Receipt with ID {unique_id} has been processed.")
+
     return {"id": unique_id}
 
 @app.get("/receipts/{unique_id}/points", status_code=200, responses={
